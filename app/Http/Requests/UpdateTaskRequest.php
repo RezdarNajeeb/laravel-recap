@@ -13,6 +13,8 @@ class UpdateTaskRequest extends FormRequest
     {
         $task = $this->route('task'); // Gets the Task model from route binding
 
+        \Log::info($task);
+
         return auth()->check() && $task->user_id === auth()->id();
     }
 

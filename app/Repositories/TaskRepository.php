@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Task;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TaskRepository
 {
@@ -27,8 +28,8 @@ class TaskRepository
         $task->delete();
     }
 
-    public function getAllForUser(int $userId): array
+    public function getAllForUser(int $userId): LengthAwarePaginator
     {
-        return Task::where('user_id', $userId)->get();
+        return Task::where('user_id', $userId)->paginate(10);
     }
 }
