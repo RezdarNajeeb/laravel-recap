@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\Task;
 use App\Repositories\TaskRepository;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class TaskService
 {
+    protected const CACHE_TTL = 300; // 5 minutes
+
     public function __construct(protected TaskRepository $tasks)
     {
         //
@@ -16,21 +19,45 @@ class TaskService
     public function store(array $data, int $userId): Task
     {
         $data['user_id'] = $userId;
-        return $this->tasks->create($data);
+        $task = $this->tasks->create($data);
+
+        $this->clearUserTasksCache($userId);
+
+        return $task;
     }
 
-    public function getAllForUser(int $userId): LengthAwarePaginator
+    /**
+     * Return all tasks for a user, cached.
+     * @return Collection
+     */
+    public function getAllForUser(int $userId): Collection
     {
-        return $this->tasks->getAllForUser($userId);
+        $cacheKey = "user:{$userId}:tasks";
+
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userId) {
+            return $this->tasks->getAllForUser($userId);
+        });
     }
 
     public function update(Task $task, array $data): Task
     {
-        return $this->tasks->update($task, $data);
+        $updatedTask = $this->tasks->update($task, $data);
+
+        $this->clearUserTasksCache($task->user_id);
+
+        return $updatedTask;
     }
 
     public function delete(Task $task): void
     {
+        $userId = $task->user_id;
         $this->tasks->delete($task);
+
+        $this->clearUserTasksCache($userId);
+    }
+
+    private function clearUserTasksCache(int $userId): void
+    {
+        Cache::forget("user:{$userId}:tasks");
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
 
@@ -23,6 +22,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        Task::factory(10)->create();
+        Task::factory(10)->create([
+            'user_id' => 2
+        ]);
     }
 }

@@ -3,18 +3,13 @@
 namespace App\Repositories;
 
 use App\Models\Task;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class TaskRepository
 {
     public function create(array $data): Task
     {
         return Task::create($data);
-    }
-
-    public function findByIdAndUser(int $id, int $userId): ?Task
-    {
-        return Task::where('id', $id)->where('user_id', $userId)->first();
     }
 
     public function update(Task $task, array $data): Task
@@ -28,8 +23,8 @@ class TaskRepository
         $task->delete();
     }
 
-    public function getAllForUser(int $userId): LengthAwarePaginator
+    public function getAllForUser(int $userId): Collection
     {
-        return Task::where('user_id', $userId)->paginate(10);
+        return Task::where('user_id', $userId)->get();
     }
 }
